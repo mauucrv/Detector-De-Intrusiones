@@ -15,8 +15,6 @@ Este repositorio es el resultado de un proyecto guiado, enfocado en aplicar las 
 5.  [Cómo Ejecutar este Proyecto](#cómo-ejecutar-este-proyecto)
 6.  [Herramientas Utilizadas](#herramientas-utilizadas)
 
----
-
 ## Dataset
 
 El dataset utilizado es el **CIC-IDS-2017**, generado por el Canadian Institute for Cybersecurity. Contiene tráfico de red capturado durante 5 días, con una mezcla de tráfico benigno y ataques comunes.
@@ -26,8 +24,6 @@ El dataset utilizado es el **CIC-IDS-2017**, generado por el Canadian Institute 
 - **Paper de Referencia:** Para citar el trabajo original, por favor refiérase al siguiente paper académico:
   > Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). _Toward generating a new intrusion detection dataset and intrusion traffic characterization_. In Proceedings of the 4th International Conference on Information Systems Security and Privacy (ICISSP).
 
----
-
 ## Estructura del Proyecto
 
 El análisis está dividido en varios notebooks secuenciales, cada uno con un propósito específico:
@@ -36,8 +32,6 @@ El análisis está dividido en varios notebooks secuenciales, cada uno con un pr
 - **`notebooks/01_exploratory_data_analysis.ipynb`**: Realiza un análisis visual para entender la distribución de las clases (descubriendo un severo desbalance), el poder predictivo de las características individuales (usando histogramas y box plots) y la redundancia entre ellas (con una matriz de correlación).
 - **`notebooks/02_feature_engineering_and_preprocessing.ipynb`**: Prepara los datos para el modelado. Esto incluye la selección de características (manual basada en EDA y automática con `SelectFromModel`), la división de datos en entrenamiento/prueba (`train_test_split` con estratificación) y el escalado de características (`StandardScaler`).
 - **`notebooks/03_model_training_and_evaluation.ipynb`**: Entrena, evalúa y compara tres experimentos de modelos utilizando `Pipelines` para un flujo de trabajo robusto: Regresión Logística (baseline), Random Forest y Random Forest con datos balanceados por SMOTE.
-
----
 
 ## Pipeline de Datos y Modelado
 
@@ -51,8 +45,6 @@ El flujo de trabajo implementado sigue las siguientes fases:
     - Se entrena un **`RandomForestClassifier`**, que mejora drásticamente la detección de ataques raros.
     - Se aplica **SMOTE** para balancear el conjunto de entrenamiento, logrando el mejor rendimiento general, especialmente en el `recall` de las clases con menos ejemplos.
 
----
-
 ## Resultados Clave
 
 El modelo final y con mejor rendimiento fue el **Random Forest entrenado con datos balanceados por SMOTE**. Este modelo, aunque muestra signos de sobreajuste (`accuracy` de 1.00), es el más competente para la tarea:
@@ -63,8 +55,6 @@ El modelo final y con mejor rendimiento fue el **Random Forest entrenado con dat
 Para un sistema de detección de intrusiones, donde es crítico minimizar los ataques no detectados (`recall` alto), este modelo es el claro ganador.
 
 ![Matriz de Confusión del Modelo Final](MatrizDeConfusionFinal.png)
-
----
 
 ## Cómo Ejecutar este Proyecto
 
@@ -81,8 +71,6 @@ Para un sistema de detección de intrusiones, donde es crítico minimizar los at
     conda install -c conda-forge --file requirements.txt
     ```
 4.  **Ejecutar los Notebooks:** Abrir la carpeta en VS Code o Jupyter Lab y ejecutar los notebooks en orden numérico (`00` a `03`).
-
----
 
 ## Herramientas Utilizadas
 
