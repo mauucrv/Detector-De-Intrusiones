@@ -64,11 +64,16 @@ Para un sistema de detección de intrusiones, donde es crítico minimizar los at
     git clone https://github.com/mauucrv/Detector-De-Intrusiones.git
     cd Detector-De-Intrusiones
     ```
-3.  **Crear el Entorno:**
+3.  **Crear el Entorno (opción conda):**
     ```bash
-    conda create --name cic_ids_env python=3.11
+    conda env create -f environment.yml
     conda activate cic_ids_env
-    conda install -c conda-forge --file requirements.txt
+    ```
+    **Alternativa con pip:**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # En Windows: venv\Scripts\activate
+    pip install -r requirements.txt
     ```
 4.  **Ejecutar los Notebooks:** Abrir la carpeta en VS Code o Jupyter Lab y ejecutar los notebooks en orden numérico (`00` a `03`).
 
