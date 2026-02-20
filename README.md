@@ -33,6 +33,16 @@ El análisis está dividido en varios notebooks secuenciales, cada uno con un pr
 - **`notebooks/02_feature_engineering_and_preprocessing.ipynb`**: Prepara los datos para el modelado. Esto incluye la selección de características (manual basada en EDA y automática con `SelectFromModel`), la división de datos en entrenamiento/prueba (`train_test_split` con estratificación) y el escalado de características (`StandardScaler`).
 - **`notebooks/03_model_training_and_evaluation.ipynb`**: Entrena, evalúa y compara tres experimentos de modelos utilizando `Pipelines` para un flujo de trabajo robusto: Regresión Logística (baseline), Random Forest y Random Forest con datos balanceados por SMOTE.
 
+### Módulos Reutilizables (`src/`)
+
+- **`src/data_utils.py`**: Utilidades de carga, limpieza y optimización de datos.
+- **`src/feature_engineering.py`**: Funciones de feature engineering y preprocesamiento.
+- **`src/evaluation.py`**: Funciones de evaluación de modelos (reportes de clasificación, matrices de confusión).
+- **`src/model_persistence.py`**: Serialización y deserialización de modelos con `joblib`, incluyendo metadatos.
+- **`src/inference.py`**: Pipeline de inferencia para clasificar tráfico nuevo con un modelo entrenado.
+- **`src/cross_validation.py`**: Validación cruzada estratificada (`StratifiedKFold`) con múltiples métricas.
+- **`src/hyperparameter_tuning.py`**: Optimización de hiperparámetros con `RandomizedSearchCV`, incluyendo parámetros de regularización para combatir sobreajuste.
+
 ## Pipeline de Datos y Modelado
 
 El flujo de trabajo implementado sigue las siguientes fases:
@@ -53,6 +63,18 @@ El modelo final y con mejor rendimiento fue el **Random Forest entrenado con dat
 - Mejora significativamente el `recall` de las clases ultra minoritarias, como `Web Attack Sql Injection` (de 17% a 50%) y `Bot` (de 78% a 95%).
 
 Para un sistema de detección de intrusiones, donde es crítico minimizar los ataques no detectados (`recall` alto), este modelo es el claro ganador.
+
+### Mitigación de Sobreajuste
+
+Para abordar el sobreajuste observado, el proyecto ahora incluye:
+
+1. **Validación cruzada estratificada** (`StratifiedKFold`): Proporciona estimaciones más robustas del rendimiento del modelo al evaluar en múltiples particiones, con especial importancia para las clases minoritarias donde la varianza es alta.
+2. **Optimización de hiperparámetros** (`RandomizedSearchCV`): Busca automáticamente la mejor combinación de parámetros de regularización:
+   - `max_depth`: Limita la profundidad de los árboles para evitar memorización.
+   - `min_samples_leaf`: Impone un mínimo de muestras por hoja.
+   - `min_samples_split`: Requiere más muestras para dividir un nodo.
+   - `max_features`: Limita las features consideradas en cada split.
+3. **Análisis de gap train/test**: El módulo de tuning compara automáticamente el score de entrenamiento vs. validación para detectar sobreajuste.
 
 ![Matriz de Confusión del Modelo Final](MatrizDeConfusionFinal.png)
 
