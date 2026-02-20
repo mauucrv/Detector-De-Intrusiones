@@ -1,1 +1,33 @@
+# IDEs y Editores
 /.vscode
+/.idea
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Entornos virtuales
+.env
+.venv
+env/
+venv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
