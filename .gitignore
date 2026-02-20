@@ -28,6 +28,10 @@ venv/
 .coverage
 htmlcov/
 
+# Modelos entrenados
+data/models/*
+!data/models/.gitkeep
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
