@@ -71,7 +71,7 @@ def optimize_memory(df):
     for col in df.columns:
         col_type = df[col].dtype
 
-        if col_type != object and col_type.name != 'category':
+        if pd.api.types.is_numeric_dtype(col_type) and col_type.name != 'category':
             c_min = df[col].min()
             c_max = df[col].max()
             if str(col_type)[:3] == 'int':
