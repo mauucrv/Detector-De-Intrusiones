@@ -12,8 +12,9 @@ Este repositorio es el resultado de un proyecto guiado, enfocado en aplicar las 
 2.  [Estructura del Proyecto](#estructura-del-proyecto)
 3.  [Pipeline de Datos y Modelado](#pipeline-de-datos-y-modelado)
 4.  [Resultados Clave](#resultados-clave)
-5.  [Cómo Ejecutar este Proyecto](#cómo-ejecutar-este-proyecto)
-6.  [Herramientas Utilizadas](#herramientas-utilizadas)
+5.  [Capacidades Avanzadas](#capacidades-avanzadas)
+6.  [Cómo Ejecutar este Proyecto](#cómo-ejecutar-este-proyecto)
+7.  [Herramientas Utilizadas](#herramientas-utilizadas)
 
 ## Dataset
 
@@ -35,13 +36,17 @@ El análisis está dividido en varios notebooks secuenciales, cada uno con un pr
 
 ### Módulos Reutilizables (`src/`)
 
-- **`src/data_utils.py`**: Utilidades de carga, limpieza y optimización de datos.
-- **`src/feature_engineering.py`**: Funciones de feature engineering y preprocesamiento.
-- **`src/evaluation.py`**: Funciones de evaluación de modelos (reportes de clasificación, matrices de confusión).
+- **`src/data_utils.py`**: Utilidades de carga, limpieza y optimización de datos. Operaciones inmutables (no modifica los datos originales).
+- **`src/feature_engineering.py`**: Funciones de feature engineering, preprocesamiento y selección con `SelectFromModel`.
+- **`src/evaluation.py`**: Evaluación de modelos con separación de métricas y visualización. Incluye análisis de gap train/test para detectar sobreajuste.
 - **`src/model_persistence.py`**: Serialización y deserialización de modelos con `joblib`, incluyendo metadatos.
-- **`src/inference.py`**: Pipeline de inferencia para clasificar tráfico nuevo con un modelo entrenado.
+- **`src/inference.py`**: Pipeline de inferencia para clasificar tráfico nuevo con un modelo entrenado. Ejecutable desde CLI.
 - **`src/cross_validation.py`**: Validación cruzada estratificada (`StratifiedKFold`) con múltiples métricas.
-- **`src/hyperparameter_tuning.py`**: Optimización de hiperparámetros con `RandomizedSearchCV`, incluyendo parámetros de regularización para combatir sobreajuste.
+- **`src/hyperparameter_tuning.py`**: Optimización de hiperparámetros con `RandomizedSearchCV` para cualquier estimator (RF, Gradient Boosting, etc.).
+- **`src/temporal_validation.py`**: Validación temporal (split por día y walk-forward validation) para evaluación realista de IDS.
+- **`src/advanced_feature_selection.py`**: Selección avanzada de features con RFECV y permutation importance.
+- **`src/drift_detection.py`**: Detección de data drift y prediction drift para monitoreo en producción.
+- **`src/exceptions.py`**: Excepciones personalizadas del proyecto.
 
 ## Pipeline de Datos y Modelado
 
@@ -66,42 +71,88 @@ Para un sistema de detección de intrusiones, donde es crítico minimizar los at
 
 ### Mitigación de Sobreajuste
 
-Para abordar el sobreajuste observado, el proyecto ahora incluye:
+Para abordar el sobreajuste observado, el proyecto incluye:
 
-1. **Validación cruzada estratificada** (`StratifiedKFold`): Proporciona estimaciones más robustas del rendimiento del modelo al evaluar en múltiples particiones, con especial importancia para las clases minoritarias donde la varianza es alta.
-2. **Optimización de hiperparámetros** (`RandomizedSearchCV`): Busca automáticamente la mejor combinación de parámetros de regularización:
-   - `max_depth`: Limita la profundidad de los árboles para evitar memorización.
-   - `min_samples_leaf`: Impone un mínimo de muestras por hoja.
-   - `min_samples_split`: Requiere más muestras para dividir un nodo.
-   - `max_features`: Limita las features consideradas en cada split.
-3. **Análisis de gap train/test**: El módulo de tuning compara automáticamente el score de entrenamiento vs. validación para detectar sobreajuste.
+1. **Validación cruzada estratificada** (`StratifiedKFold`): Proporciona estimaciones más robustas del rendimiento del modelo al evaluar en múltiples particiones.
+2. **Optimización de hiperparámetros** (`RandomizedSearchCV`): Busca automáticamente la mejor combinación de parámetros de regularización (`max_depth`, `min_samples_leaf`, `min_samples_split`, `max_features`).
+3. **Análisis de gap train/test**: El módulo `evaluation.py` compara automáticamente el score de entrenamiento vs. prueba para detectar sobreajuste explícitamente.
 
 ![Matriz de Confusión del Modelo Final](MatrizDeConfusionFinal.png)
 
+## Capacidades Avanzadas
+
+### Validación Temporal
+
+El módulo `temporal_validation.py` implementa splits basados en el día de captura del tráfico, simulando un escenario realista donde el modelo entrena con datos históricos y predice tráfico futuro. Incluye **walk-forward validation** para evaluar la estabilidad del modelo a lo largo del tiempo.
+
+### Selección Avanzada de Features
+
+El módulo `advanced_feature_selection.py` complementa `SelectFromModel` con:
+- **RFECV** (Recursive Feature Elimination con CV): elimina features iterativamente.
+- **Permutation Importance**: mide la importancia real de cada feature sin sesgo de cardinalidad.
+- **Comparación automática**: tabla comparativa de los tres métodos.
+
+### Detección de Drift
+
+El módulo `drift_detection.py` monitorea la degradación del modelo en producción:
+- **Data drift**: test de Kolmogorov-Smirnov por feature para detectar cambios en las distribuciones de entrada.
+- **Prediction drift**: test chi-cuadrado para detectar cambios en las distribuciones de predicciones.
+- **`DriftMonitor`**: clase para monitoreo continuo por batches con alertas automáticas de reentrenamiento.
+
+### Pipeline Generalizado de Tuning
+
+El módulo `hyperparameter_tuning.py` ahora acepta cualquier estimator de scikit-learn, con distribuciones predefinidas para Random Forest y Gradient Boosting.
+
 ## Cómo Ejecutar este Proyecto
 
-1.  **Prerrequisitos:** Tener instalado `conda` y `git`, incluyendo la extensión `git-lfs`.
-2.  **Clonar el Repositorio:**
-    ```bash
-    git clone https://github.com/mauucrv/Detector-De-Intrusiones.git
-    cd Detector-De-Intrusiones
-    ```
-3.  **Crear el Entorno (opción conda):**
-    ```bash
-    conda env create -f environment.yml
-    conda activate cic_ids_env
-    ```
-    **Alternativa con pip:**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # En Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    ```
-4.  **Ejecutar los Notebooks:** Abrir la carpeta en VS Code o Jupyter Lab y ejecutar los notebooks en orden numérico (`00` a `03`).
+### Prerrequisitos
+
+Tener instalado `conda` o `pip`, y `git` con extensión `git-lfs`.
+
+### Instalación
+
+```bash
+git clone https://github.com/mauucrv/Detector-De-Intrusiones.git
+cd Detector-De-Intrusiones
+
+# Opción 1: pip (recomendado)
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+pip install -e ".[dev]"
+
+# Opción 2: conda
+conda env create -f environment.yml
+conda activate cic_ids_env
+```
+
+### Uso
+
+```bash
+# Ejecutar tests
+make test
+# o: pytest tests/ -v
+
+# Verificar estilo
+make lint
+# o: ruff check src/ tests/
+
+# Ejecutar pipeline completo
+make pipeline
+
+# Inferencia CLI
+python -m src.inference data/models/best_model.joblib datos_nuevos.csv
+```
+
+### Ejecutar Notebooks
+
+Abrir la carpeta en VS Code o Jupyter Lab y ejecutar los notebooks en orden numérico (`00` a `03`).
 
 ## Herramientas Utilizadas
 
 - **Lenguaje:** Python 3.11
-- **Librerías Principales:** Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib, Seaborn, Joblib.
+- **Librerías Principales:** Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib, Seaborn, Joblib, SciPy.
+- **Testing:** Pytest.
+- **Linting:** Ruff.
+- **CI/CD:** GitHub Actions.
 - **Control de Versiones:** Git y Git LFS.
 - **Entorno:** Jupyter Notebook en VS Code.

@@ -32,6 +32,10 @@ htmlcov/
 data/models/*
 !data/models/.gitkeep
 
+# Datos procesados (generados por el pipeline)
+data/processed/*
+!data/processed/.gitkeep
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
