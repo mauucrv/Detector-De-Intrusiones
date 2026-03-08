@@ -1,0 +1,45 @@
+[project]
+name = "detector-intrusiones"
+version = "0.1.0"
+description = "Detector de Intrusiones de Red con Machine Learning (CIC-IDS-2017)"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+    "imbalanced-learn>=0.11",
+    "matplotlib>=3.7",
+    "seaborn>=0.13",
+    "joblib>=1.3",
+    "pyarrow>=14.0",
+    "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501", "N803", "N806", "B905"]  # ML naming convention + zip strict
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F811"]  # Allow fixture redefinition in tests

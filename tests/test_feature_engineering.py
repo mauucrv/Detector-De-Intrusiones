@@ -4,18 +4,11 @@ Tests unitarios para src/feature_engineering.py
 
 import numpy as np
 import pandas as pd
-import pytest
-
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
 from src.feature_engineering import (
-    split_features_target,
+    drop_manual_columns,
     perform_train_test_split,
     scale_features,
-    drop_manual_columns,
+    split_features_target,
 )
 
 

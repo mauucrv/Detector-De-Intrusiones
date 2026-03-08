@@ -4,14 +4,6 @@ Tests unitarios para src/data_utils.py
 
 import numpy as np
 import pandas as pd
-import pytest
-
-import sys
-import os
-
-# Agregar el directorio raíz del proyecto al path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
 from src.data_utils import clean_dataframe, optimize_memory
 
 

@@ -3,18 +3,15 @@ Tests unitarios para src/inference.py
 """
 
 import os
-import sys
 import tempfile
+
 import numpy as np
 import pandas as pd
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
-from src.model_persistence import save_model
+from sklearn.ensemble import RandomForestClassifier
 from src.inference import IntrusionDetector
+from src.model_persistence import save_model
 
 
 def _create_test_model(tmpdir):

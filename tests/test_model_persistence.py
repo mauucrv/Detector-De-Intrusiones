@@ -4,16 +4,12 @@ Tests unitarios para src/model_persistence.py
 
 import os
 import tempfile
-import pytest
+
 import numpy as np
-
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from sklearn.ensemble import RandomForestClassifier
+import pytest
 from sklearn.datasets import make_classification
-from src.model_persistence import save_model, load_model
+from sklearn.ensemble import RandomForestClassifier
+from src.model_persistence import load_model, save_model
 
 
 class TestSaveModel:
