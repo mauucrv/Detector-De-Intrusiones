@@ -4,11 +4,16 @@ Pipeline de inferencia para el Detector de Intrusiones.
 Permite cargar un modelo entrenado y clasificar tráfico de red nuevo.
 """
 
+import logging
 import os
 import sys
+
 import numpy as np
 import pandas as pd
-from joblib import load as joblib_load
+
+from src.model_persistence import load_model
+
+logger = logging.getLogger(__name__)
 
 
 class IntrusionDetector:
@@ -30,25 +35,9 @@ class IntrusionDetector:
             model_path (str): Ruta al archivo del modelo serializado.
 
         Raises:
-            FileNotFoundError: Si el archivo del modelo no existe.
+            ModelNotFoundError: Si el archivo del modelo no existe.
         """
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(
-                f"No se encontró el archivo de modelo: {model_path}"
-            )
-
-        model_data = joblib_load(model_path)
-
-        if isinstance(model_data, dict) and 'model' in model_data:
-            self.model = model_data['model']
-            self.metadata = model_data.get('metadata', {})
-        else:
-            self.model = model_data
-            self.metadata = {}
-
-        print(f"Modelo cargado desde: {model_path}")
-        if self.metadata:
-            print(f"Metadatos: {self.metadata}")
+        self.model, self.metadata = load_model(model_path)
 
     def predict(self, X):
         """
@@ -104,14 +93,16 @@ class IntrusionDetector:
 
         Retorna:
             np.ndarray o pd.DataFrame: Datos listos para predicción.
+
+        Raises:
+            InvalidDataError: Si el tipo de datos no es soportado.
+            FileNotFoundError: Si la ruta a CSV no existe.
         """
         if isinstance(X, str):
             if not os.path.exists(X):
                 raise FileNotFoundError(f"Archivo no encontrado: {X}")
             return pd.read_csv(X)
-        elif isinstance(X, pd.DataFrame):
-            return X
-        elif isinstance(X, np.ndarray):
+        elif isinstance(X, (pd.DataFrame, np.ndarray)):
             return X
         else:
             raise TypeError(
@@ -126,28 +117,32 @@ if __name__ == '__main__':
         print("Ejemplo: python -m src.inference data/models/best_model.joblib datos_nuevos.csv")
         sys.exit(1)
 
+    # Configurar logging para ejecución CLI
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
     model_path = sys.argv[1]
     data_path = sys.argv[2]
 
-    print(f"Cargando modelo desde: {model_path}")
+    logger.info("Cargando modelo desde: %s", model_path)
     detector = IntrusionDetector(model_path)
 
-    print(f"\nCargando datos desde: {data_path}")
+    logger.info("Cargando datos desde: %s", data_path)
     datos = pd.read_csv(data_path)
-    print(f"Datos cargados: {datos.shape[0]} registros, {datos.shape[1]} características")
+    logger.info("Datos cargados: %d registros, %d características",
+                datos.shape[0], datos.shape[1])
 
-    print("\nRealizando predicciones...")
+    logger.info("Realizando predicciones...")
     predicciones = detector.predict(datos)
 
     # Mostrar resumen de predicciones
     clases_unicas, conteos = np.unique(predicciones, return_counts=True)
-    print("\n--- Resumen de Predicciones ---")
+    logger.info("--- Resumen de Predicciones ---")
     for clase, conteo in zip(clases_unicas, conteos):
-        print(f"  {clase}: {conteo} ({conteo / len(predicciones) * 100:.1f}%)")
+        logger.info("  %s: %d (%.1f%%)", clase, conteo, conteo / len(predicciones) * 100)
 
     # Guardar resultados
     output_path = data_path.replace('.csv', '_predicciones.csv')
     resultado = datos.copy()
     resultado['Prediccion'] = predicciones
     resultado.to_csv(output_path, index=False)
-    print(f"\nPredicciones guardadas en: {output_path}")
+    logger.info("Predicciones guardadas en: %s", output_path)
