@@ -5,15 +5,19 @@ Implementa StratifiedKFold para tener mayor confianza en los resultados
 de los modelos, especialmente para clases minoritarias.
 """
 
+import logging
+
 import numpy as np
-from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
-    make_scorer,
     accuracy_score,
+    f1_score,
+    make_scorer,
     precision_score,
     recall_score,
-    f1_score,
 )
+from sklearn.model_selection import StratifiedKFold, cross_validate
+
+logger = logging.getLogger(__name__)
 
 
 def cross_validate_model(model, X, y, n_splits=5, random_state=42, n_jobs=-1):
@@ -59,8 +63,9 @@ def cross_validate_model(model, X, y, n_splits=5, random_state=42, n_jobs=-1):
         ),
     }
 
-    print(f"Iniciando validación cruzada con {n_splits} folds...")
-    print(f"Tamaño del dataset: {X.shape[0]} muestras, {X.shape[1]} características")
+    logger.info("Iniciando validación cruzada con %d folds...", n_splits)
+    logger.info("Tamaño del dataset: %d muestras, %d características",
+                X.shape[0], X.shape[1])
 
     cv_results = cross_validate(
         model,
@@ -91,20 +96,21 @@ def cross_validate_model(model, X, y, n_splits=5, random_state=42, n_jobs=-1):
     }
 
     # Imprimir resumen
-    print("\n--- Resultados de Validación Cruzada ---")
-    print(f"Accuracy:  {results['accuracy_mean']:.4f} (+/- {results['accuracy_std']:.4f})")
-    print(f"Precision: {results['precision_mean']:.4f} (+/- {results['precision_std']:.4f})")
-    print(f"Recall:    {results['recall_mean']:.4f} (+/- {results['recall_std']:.4f})")
-    print(f"F1-Score:  {results['f1_mean']:.4f} (+/- {results['f1_std']:.4f})")
+    logger.info("--- Resultados de Validación Cruzada ---")
+    logger.info("Accuracy:  %.4f (+/- %.4f)", results['accuracy_mean'], results['accuracy_std'])
+    logger.info("Precision: %.4f (+/- %.4f)", results['precision_mean'], results['precision_std'])
+    logger.info("Recall:    %.4f (+/- %.4f)", results['recall_mean'], results['recall_std'])
+    logger.info("F1-Score:  %.4f (+/- %.4f)", results['f1_mean'], results['f1_std'])
 
-    print("\n--- Scores por Fold ---")
+    logger.debug("--- Scores por Fold ---")
     for i in range(n_splits):
-        print(
-            f"  Fold {i + 1}: "
-            f"Acc={cv_results['test_accuracy'][i]:.4f}, "
-            f"Prec={cv_results['test_precision_macro'][i]:.4f}, "
-            f"Rec={cv_results['test_recall_macro'][i]:.4f}, "
-            f"F1={cv_results['test_f1_macro'][i]:.4f}"
+        logger.debug(
+            "  Fold %d: Acc=%.4f, Prec=%.4f, Rec=%.4f, F1=%.4f",
+            i + 1,
+            cv_results['test_accuracy'][i],
+            cv_results['test_precision_macro'][i],
+            cv_results['test_recall_macro'][i],
+            cv_results['test_f1_macro'][i],
         )
 
     return results

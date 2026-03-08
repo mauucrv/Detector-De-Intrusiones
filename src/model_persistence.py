@@ -5,9 +5,15 @@ Permite serializar y deserializar modelos entrenados con joblib,
 incluyendo metadatos opcionales como nombre, métricas y fecha.
 """
 
+import logging
 import os
 from datetime import datetime
+
 from joblib import dump, load
+
+from src.exceptions import ModelNotFoundError
+
+logger = logging.getLogger(__name__)
 
 
 def save_model(model, path, metadata=None):
@@ -36,7 +42,7 @@ def save_model(model, path, metadata=None):
     }
 
     dump(model_data, path)
-    print(f"Modelo guardado exitosamente en: {path}")
+    logger.info("Modelo guardado exitosamente en: %s", path)
     return os.path.abspath(path)
 
 
@@ -52,11 +58,11 @@ def load_model(path):
             entrenado y metadata es el diccionario de metadatos.
 
     Raises:
-        FileNotFoundError: Si el archivo no existe.
+        ModelNotFoundError: Si el archivo no existe.
         ValueError: Si el archivo no tiene el formato esperado.
     """
     if not os.path.exists(path):
-        raise FileNotFoundError(f"No se encontró el archivo de modelo: {path}")
+        raise ModelNotFoundError(f"No se encontró el archivo de modelo: {path}")
 
     model_data = load(path)
 
@@ -64,10 +70,10 @@ def load_model(path):
         model = model_data['model']
         metadata = model_data.get('metadata', {})
         metadata['saved_at'] = model_data.get('saved_at', 'desconocido')
-        print(f"Modelo cargado exitosamente desde: {path}")
-        print(f"Fecha de guardado: {metadata['saved_at']}")
+        logger.info("Modelo cargado exitosamente desde: %s", path)
+        logger.debug("Fecha de guardado: %s", metadata['saved_at'])
         return model, metadata
 
     # Compatibilidad: si el archivo solo contiene el modelo directamente
-    print(f"Modelo cargado exitosamente desde: {path} (formato legacy)")
+    logger.info("Modelo cargado exitosamente desde: %s (formato legacy)", path)
     return model_data, {}

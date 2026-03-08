@@ -4,12 +4,16 @@ Funciones de feature engineering y preprocesamiento.
 Funciones extraídas del notebook 02_feature_engineering_and_preprocessing.
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+import logging
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from src.exceptions import InvalidDataError
+
+logger = logging.getLogger(__name__)
 
 
 def drop_manual_columns(df, columns_to_drop):
@@ -25,8 +29,8 @@ def drop_manual_columns(df, columns_to_drop):
     """
     existing_cols = [col for col in columns_to_drop if col in df.columns]
     df_cleaned = df.drop(columns=existing_cols)
-    print(f"Columnas eliminadas manualmente: {existing_cols}")
-    print(f"Dimensiones resultantes: {df_cleaned.shape}")
+    logger.info("Columnas eliminadas manualmente: %s", existing_cols)
+    logger.info("Dimensiones resultantes: %s", df_cleaned.shape)
     return df_cleaned
 
 
@@ -40,7 +44,15 @@ def split_features_target(df, target_column='Label'):
 
     Retorna:
         tuple: (X, y) donde X son las features y y es el target.
+
+    Raises:
+        InvalidDataError: Si la columna objetivo no existe en el DataFrame.
     """
+    if target_column not in df.columns:
+        raise InvalidDataError(
+            f"La columna objetivo '{target_column}' no existe. "
+            f"Columnas disponibles: {list(df.columns)}"
+        )
     X = df.drop(columns=[target_column])
     y = df[target_column]
     return X, y
@@ -62,8 +74,8 @@ def perform_train_test_split(X, y, test_size=0.3, random_state=42):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
-    print(f"Dimensiones de entrenamiento: X={X_train.shape}, y={y_train.shape}")
-    print(f"Dimensiones de prueba: X={X_test.shape}, y={y_test.shape}")
+    logger.info("Dimensiones de entrenamiento: X=%s, y=%s", X_train.shape, y_train.shape)
+    logger.info("Dimensiones de prueba: X=%s, y=%s", X_test.shape, y_test.shape)
     return X_train, X_test, y_train, y_test
 
 
@@ -82,7 +94,7 @@ def select_features_with_rf(X_train, y_train, X_test, random_state=42, threshold
     Retorna:
         tuple: (X_train_selected, X_test_selected, selected_feature_names)
     """
-    print("Entrenando Random Forest para selección de features...")
+    logger.info("Entrenando Random Forest para selección de features...")
     rf_selector = RandomForestClassifier(n_estimators=100, random_state=random_state, n_jobs=-1)
     rf_selector.fit(X_train, y_train)
 
@@ -92,9 +104,8 @@ def select_features_with_rf(X_train, y_train, X_test, random_state=42, threshold
 
     selected_feature_names = X_train.columns[selector.get_support()].tolist()
 
-    print(f"Features originales: {X_train.shape[1]}")
-    print(f"Features seleccionadas: {len(selected_feature_names)}")
-    print(f"Features: {selected_feature_names}")
+    logger.info("Features originales: %d", X_train.shape[1])
+    logger.info("Features seleccionadas: %d — %s", len(selected_feature_names), selected_feature_names)
 
     return X_train_selected, X_test_selected, selected_feature_names
 
@@ -114,5 +125,5 @@ def scale_features(X_train, X_test):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    print("Escalado completado.")
+    logger.info("Escalado completado.")
     return X_train_scaled, X_test_scaled, scaler
